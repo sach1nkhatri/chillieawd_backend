@@ -1,17 +1,29 @@
 package service;
 
-import entity.User;
 
-import java.util.List;
-import java.util.Optional;
 
-public interface UserService {
+import model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import repository.UserRepository;
 
-    List<User> getAllUsers();
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
 
-    Optional<User> getUserById(Long id);
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    User saveUser(User user);
+    public User registerUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
 
-    void deleteUser(Long id);
+    public User loginUser(String email, String password) {
+        return userRepository.findByEmail(email)
+                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
+                .orElse(null);
+    }
 }
